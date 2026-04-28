@@ -66,9 +66,9 @@ function readUrlParams(): { presetId: string | null; date: string | null } {
   };
 }
 
-function resolveInitial(): { presetId: string; meetingDate: string; state: AgendaState } {
+function resolveInitial(forcedPresetId?: string): { presetId: string; meetingDate: string; state: AgendaState } {
   const { presetId: urlPresetId, date: urlDate } = readUrlParams();
-  const presetId = urlPresetId ?? CHAPTER_PRESETS[0].id;
+  const presetId = forcedPresetId ?? urlPresetId ?? CHAPTER_PRESETS[0].id;
   const basePreset = CHAPTER_PRESETS.find((p) => p.id === presetId) ?? CHAPTER_PRESETS[0];
   const preset = mergePresetWithSaved(basePreset);
   const meetingDate = urlDate ?? nextMeetingDateET(basePreset.meetingDay);
@@ -77,15 +77,15 @@ function resolveInitial(): { presetId: string; meetingDate: string; state: Agend
   return { presetId, meetingDate, state };
 }
 
-export function AgendaApp() {
-  const [presetId, setPresetId] = useState<string>(() => resolveInitial().presetId);
-  const [meetingDate, setMeetingDate] = useState<string>(() => resolveInitial().meetingDate);
-  const [state, setState] = useState<AgendaState>(() => resolveInitial().state);
+export function AgendaApp({ initialPresetId }: { initialPresetId?: string } = {}) {
+  const [presetId, setPresetId] = useState<string>(() => resolveInitial(initialPresetId).presetId);
+  const [meetingDate, setMeetingDate] = useState<string>(() => resolveInitial(initialPresetId).meetingDate);
+  const [state, setState] = useState<AgendaState>(() => resolveInitial(initialPresetId).state);
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(true);
   const [recent, setRecent] = useState<AgendaState[]>(() => {
     if (typeof window === "undefined") return [];
-    const init = resolveInitial();
+    const init = resolveInitial(initialPresetId);
     return recentAgendas(init.presetId).filter((r) => r.meetingDate !== init.meetingDate);
   });
   const [editingChapter, setEditingChapter] = useState(false);
