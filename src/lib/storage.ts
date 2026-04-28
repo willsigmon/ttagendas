@@ -1,71 +1,53 @@
-import type { AgendaItem, ChapterPreset } from "./agenda-defaults";
+import type { RosterMember, TeamPreset } from "./agenda-defaults";
 
-export interface AgendaState {
-  preset: ChapterPreset;
+export interface WeeklyAgendaState {
+  teamId: string;
   meetingDate: string;
   spotlightName: string;
-  spotlightCompany: string;
+  spotlightProfession: string;
+  upcoming: [string, string, string];
   mentorName: string;
   tipText: string;
-  notes: string;
-  items: AgendaItem[];
+  /** Optional override of the team's roster for this week. Empty = use preset. */
+  roster: RosterMember[];
+  /** Optional snapshot stats override for this week. Null = use preset. */
+  stats: TeamPreset["stats"] | null;
+  /** Optional venue override (e.g. one-off off-site week). */
+  venueOverride: { name: string; address: string; note: string } | null;
 }
 
-const KEY_PREFIX = "two-twelve-agenda:";
+const KEY_PREFIX = "ttagendas:";
 
-export function storageKey(presetId: string, meetingDate: string): string {
-  return `${KEY_PREFIX}${presetId}:${meetingDate}`;
+function key(teamId: string, meetingDate: string): string {
+  return `${KEY_PREFIX}${teamId}:${meetingDate}`;
 }
 
-export function loadAgenda(presetId: string, meetingDate: string): AgendaState | null {
+export function loadWeekly(teamId: string, meetingDate: string): WeeklyAgendaState | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = window.localStorage.getItem(storageKey(presetId, meetingDate));
-    if (!raw) return null;
-    return JSON.parse(raw) as AgendaState;
+    const raw = window.localStorage.getItem(key(teamId, meetingDate));
+    return raw ? (JSON.parse(raw) as WeeklyAgendaState) : null;
   } catch {
     return null;
   }
 }
 
-export function saveAgenda(state: AgendaState): void {
+export function saveWeekly(state: WeeklyAgendaState): void {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(
-    storageKey(state.preset.id, state.meetingDate),
-    JSON.stringify(state),
-  );
+  window.localStorage.setItem(key(state.teamId, state.meetingDate), JSON.stringify(state));
 }
 
-export function recentAgendas(presetId: string, limit = 6): AgendaState[] {
-  if (typeof window === "undefined") return [];
-  const out: AgendaState[] = [];
-  for (let i = 0; i < window.localStorage.length; i++) {
-    const k = window.localStorage.key(i);
-    if (!k || !k.startsWith(`${KEY_PREFIX}${presetId}:`)) continue;
-    try {
-      const v = window.localStorage.getItem(k);
-      if (v) out.push(JSON.parse(v) as AgendaState);
-    } catch {
-      // ignore
-    }
-  }
-  return out
-    .sort((a, b) => b.meetingDate.localeCompare(a.meetingDate))
-    .slice(0, limit);
-}
-
-export function savedChapterDefaults(presetId: string): Partial<ChapterPreset> | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = window.localStorage.getItem(`${KEY_PREFIX}preset:${presetId}`);
-    if (!raw) return null;
-    return JSON.parse(raw) as Partial<ChapterPreset>;
-  } catch {
-    return null;
-  }
-}
-
-export function saveChapterDefaults(presetId: string, defaults: Partial<ChapterPreset>): void {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(`${KEY_PREFIX}preset:${presetId}`, JSON.stringify(defaults));
+export function emptyWeekly(teamId: string, meetingDate: string): WeeklyAgendaState {
+  return {
+    teamId,
+    meetingDate,
+    spotlightName: "",
+    spotlightProfession: "",
+    upcoming: ["", "", ""],
+    mentorName: "",
+    tipText: "",
+    roster: [],
+    stats: null,
+    venueOverride: null,
+  };
 }

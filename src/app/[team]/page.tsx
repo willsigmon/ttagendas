@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
 import { AgendaApp } from "@/components/AgendaApp";
-import { CHAPTER_PRESETS } from "@/lib/agenda-defaults";
+import { TEAM_PRESETS, findTeamByAlias } from "@/lib/agenda-defaults";
 
 export function generateStaticParams() {
-  return CHAPTER_PRESETS.filter((p) => p.id !== "blank").flatMap((p) => {
+  return TEAM_PRESETS.flatMap((p) => {
     const aliases = new Set<string>();
     aliases.add(p.id);
-    if (p.shortName) aliases.add(p.shortName.toLowerCase());
+    aliases.add(p.shortName.toLowerCase());
     return Array.from(aliases).map((team) => ({ team }));
   });
 }
@@ -17,30 +17,19 @@ interface PageProps {
   params: Promise<{ team: string }>;
 }
 
-const ALIAS_MAP: Record<string, string> = (() => {
-  const map: Record<string, string> = {};
-  for (const p of CHAPTER_PRESETS) {
-    if (p.id === "blank") continue;
-    map[p.id.toLowerCase()] = p.id;
-    if (p.shortName) map[p.shortName.toLowerCase()] = p.id;
-  }
-  return map;
-})();
-
 export async function generateMetadata({ params }: PageProps) {
   const { team } = await params;
-  const presetId = ALIAS_MAP[team.toLowerCase()];
-  const preset = CHAPTER_PRESETS.find((p) => p.id === presetId);
+  const preset = findTeamByAlias(team);
   if (!preset) return { title: "Agenda Builder — two twelve°" };
   return {
-    title: `${preset.shortName || preset.name} Agenda — two twelve°`,
-    description: `Weekly meeting agenda builder for ${preset.name}. ${preset.tagline}`.trim(),
+    title: `${preset.shortName} Agenda — two twelve°`,
+    description: `Weekly meeting agenda for ${preset.name}.`,
   };
 }
 
 export default async function TeamAgendaPage({ params }: PageProps) {
   const { team } = await params;
-  const presetId = ALIAS_MAP[team.toLowerCase()];
-  if (!presetId) notFound();
-  return <AgendaApp initialPresetId={presetId} />;
+  const preset = findTeamByAlias(team);
+  if (!preset) notFound();
+  return <AgendaApp initialTeamId={preset.id} />;
 }

@@ -1,36 +1,40 @@
 import Link from "next/link";
-import { CHAPTER_PRESETS } from "@/lib/agenda-defaults";
+import { TEAM_PRESETS } from "@/lib/agenda-defaults";
 
 export default function TeamNotFound() {
-  const chapters = CHAPTER_PRESETS.filter((p) => p.id !== "blank");
   return (
-    <main className="app-shell">
-      <div className="atmosphere" aria-hidden="true" />
-      <div className="content" style={{ display: "grid", placeItems: "center", minHeight: "70dvh" }}>
-        <div className="panel p-6" style={{ maxWidth: 480, textAlign: "center" }}>
-          <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "var(--brand-blue-deep)" }}>
-            Chapter not found
-          </p>
-          <h1 className="display text-xl mt-1" style={{ color: "var(--ink)" }}>
-            We don&apos;t have that team yet
-          </h1>
-          <p className="text-sm mt-2" style={{ color: "var(--ink-muted)" }}>
-            Try one of the live chapters:
-          </p>
-          <ul className="mt-3 grid gap-2">
-            {chapters.map((c) => (
-              <li key={c.id}>
-                <Link className="btn btn-ghost btn-sm" href={`/${c.shortName.toLowerCase()}`}>
-                  {c.shortName} — {c.name}
-                </Link>
-              </li>
-            ))}
-            <li>
-              <Link className="btn btn-primary btn-sm" href="/">
-                Open the generic builder
-              </Link>
-            </li>
-          </ul>
+    <main style={{ minHeight: "100dvh", display: "grid", placeItems: "center", padding: 24, background: "#e8e0d8" }}>
+      <div style={{ maxWidth: 480, textAlign: "center", background: "#fff", padding: 28, borderRadius: 6, border: "1px solid rgba(156,119,72,0.22)" }}>
+        <p style={{ fontFamily: "var(--font-display), sans-serif", letterSpacing: 3, fontSize: 12, color: "#9c7748", margin: 0, fontWeight: 700, textTransform: "uppercase" }}>
+          Team not found
+        </p>
+        <h1 style={{ fontFamily: "var(--font-display), sans-serif", fontSize: 28, letterSpacing: 1.5, margin: "6px 0 4px" }}>
+          We don&apos;t have that team yet
+        </h1>
+        <p style={{ fontFamily: "var(--font-serif), Georgia, serif", fontStyle: "italic", color: "#5c4a3d", marginBottom: 20 }}>
+          Try one of these:
+        </p>
+        <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
+          {TEAM_PRESETS.map((t) => (
+            <Link
+              key={t.id}
+              href={`/${t.shortName.toLowerCase()}`}
+              style={{
+                padding: "10px 14px",
+                borderRadius: 4,
+                border: `1.5px solid ${t.accent}`,
+                color: "#fff",
+                background: t.accent,
+                textDecoration: "none",
+                fontFamily: "var(--font-display), sans-serif",
+                letterSpacing: 1.5,
+                fontSize: 13,
+                fontWeight: 700,
+              }}
+            >
+              {t.shortName}
+            </Link>
+          ))}
         </div>
       </div>
     </main>

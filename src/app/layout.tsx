@@ -1,38 +1,42 @@
 import type { Metadata, Viewport } from "next";
-import { Poppins, Geist_Mono } from "next/font/google";
+import { Bebas_Neue, Cormorant_Garamond, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
-const poppins = Poppins({
+const bodySans = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
-  variable: "--font-sans",
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-body",
   display: "swap",
 });
 
-const poppinsDisplay = Poppins({
+const display = Bebas_Neue({
   subsets: ["latin"],
-  weight: ["600", "700", "800"],
+  weight: ["400"],
   variable: "--font-display",
   display: "swap",
 });
 
-const geistMono = Geist_Mono({
+const serif = Cormorant_Garamond({
   subsets: ["latin"],
-  variable: "--font-mono",
+  weight: ["400", "600", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-serif",
   display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "Agenda Builder — two twelve°",
-  description: "Build and print weekly meeting agendas for two twelve° referral teams. No login required.",
+  description:
+    "Build a printable, 2-page weekly meeting agenda for any two twelve° referral team. No login required.",
   icons: {
     icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
     shortcut: "/favicon.ico",
   },
+  robots: { index: false, follow: false },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#59BFEF",
+  themeColor: "#E8580C",
   colorScheme: "light",
   width: "device-width",
   initialScale: 1,
@@ -46,7 +50,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${poppinsDisplay.variable} ${poppins.variable} ${geistMono.variable}`}
+      className={`${display.variable} ${bodySans.variable} ${serif.variable}`}
     >
       <body>{children}</body>
     </html>

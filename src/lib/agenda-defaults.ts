@@ -1,15 +1,13 @@
 /**
  * Canonical Two Twelve meeting agenda — the 5-segment template every
- * chapter starts from. Each chapter can edit per-week locally; if a
- * week has no overrides the print view falls back to these defaults.
+ * team starts from. Layout & visual design intentionally mirrors
+ * rduheatwave.team/agenda so teams share a printed identity.
  */
 
 export interface AgendaItem {
-  id: string;
   group: AgendaGroup;
   glyph: string;
   label: string;
-  spotlight?: "spotlight" | "mentor";
 }
 
 export type AgendaGroup =
@@ -19,28 +17,6 @@ export type AgendaGroup =
   | "Referrals"
   | "Closing";
 
-export const DEFAULT_AGENDA: AgendaItem[] = [
-  { id: "arrivals",       group: "Welcome",   glyph: "◊", label: "Arrivals & Open Networking" },
-  { id: "welcome",        group: "Welcome",   glyph: "★", label: "Welcome & Introductions" },
-  { id: "overview",       group: "Welcome",   glyph: "◉", label: "Overview of Two Twelve Referral Network" },
-
-  { id: "exchange-cards", group: "Connect",   glyph: "▦", label: "Exchange Business Cards" },
-  { id: "thirty-sec",     group: "Connect",   glyph: "▷", label: "30-Second Profiles" },
-
-  { id: "vc-report",      group: "Business",  glyph: "◆", label: "Vice Chair Report" },
-  { id: "ta-report",      group: "Business",  glyph: "◆", label: "Team Admin Report" },
-  { id: "follow-up",      group: "Business",  glyph: "➜", label: "Referral Follow-Up" },
-  { id: "spotlight",      group: "Business",  glyph: "★", label: "Member Spotlight", spotlight: "spotlight" },
-  { id: "mentor",         group: "Business",  glyph: "❆", label: "Mentor Moment", spotlight: "mentor" },
-
-  { id: "referrals-pass", group: "Referrals", glyph: "➜", label: "Passing of Referrals & Testimonials" },
-  { id: "bizchat-book",   group: "Referrals", glyph: "✉", label: "Book a BizChat" },
-
-  { id: "announcements",  group: "Closing",   glyph: "✎", label: "Announcements & How to Apply" },
-  { id: "affirmation",    group: "Closing",   glyph: "✦", label: "Closing Affirmation" },
-  { id: "adjourn",        group: "Closing",   glyph: "◊", label: "Meeting Adjourned & Open Networking" },
-];
-
 export const AGENDA_GROUPS: AgendaGroup[] = [
   "Welcome",
   "Connect",
@@ -49,101 +25,146 @@ export const AGENDA_GROUPS: AgendaGroup[] = [
   "Closing",
 ];
 
-export const GLYPH_CHOICES: Array<{ char: string; name: string }> = [
-  { char: "◊", name: "Diamond outline" },
-  { char: "◆", name: "Diamond solid" },
-  { char: "★", name: "Star solid" },
-  { char: "◉", name: "Bullseye" },
-  { char: "▦", name: "Square dotted" },
-  { char: "▷", name: "Triangle right" },
-  { char: "➜", name: "Heavy arrow" },
-  { char: "✉", name: "Envelope" },
-  { char: "✎", name: "Pencil" },
-  { char: "✦", name: "Star four-point" },
-  { char: "❆", name: "Floral heart" },
+export const DEFAULT_AGENDA: AgendaItem[] = [
+  { group: "Welcome",   glyph: "◊", label: "Arrivals & Open Networking" },
+  { group: "Welcome",   glyph: "★", label: "Welcome & Introductions" },
+  { group: "Welcome",   glyph: "◉", label: "Overview of Two Twelve Referral Network" },
+
+  { group: "Connect",   glyph: "▦", label: "Exchange Business Cards" },
+  { group: "Connect",   glyph: "▷", label: "30-Second Profiles" },
+
+  { group: "Business",  glyph: "◆", label: "Vice Chair Report" },
+  { group: "Business",  glyph: "◆", label: "Team Admin Report" },
+  { group: "Business",  glyph: "➜", label: "Referral Follow-Up" },
+  { group: "Business",  glyph: "★", label: "Member Spotlight" },
+  { group: "Business",  glyph: "❆", label: "Mentor Moment" },
+
+  { group: "Referrals", glyph: "➜", label: "Passing of Referrals & Testimonials" },
+  { group: "Referrals", glyph: "✉", label: "Book a BizChat" },
+
+  { group: "Closing",   glyph: "✎", label: "Announcements & How to Apply" },
+  { group: "Closing",   glyph: "✦", label: "Closing Affirmation" },
+  { group: "Closing",   glyph: "◊", label: "Meeting Adjourned & Open Networking" },
 ];
 
-export interface ChapterPreset {
-  id: string;
+export interface RosterMember {
   name: string;
-  shortName: string;
-  motif: string;
-  tagline: string;
-  accent: string;
-  meetingDay: string;
-  meetingTime: string;
-  venue: string;
-  chair: string;
-  viceChair: string;
-  tms: string;
-  teamAdmin: string;
-  areaMentor: string;
+  profession: string;
+  company: string;
 }
 
-export const CHAPTER_PRESETS: ChapterPreset[] = [
+export interface TeamPreset {
+  id: string;
+  /** Full team name. */
+  name: string;
+  /** Short tag like "ERA" / "RDU" / "CGC". */
+  shortName: string;
+  /** Display word printed in the team accent color (e.g. "Heatwave"). */
+  motif: string;
+  /** Display word printed before the motif (e.g. "RDU"). */
+  prefix: string;
+  /** Hex accent — primary color used for headings, glyphs, accent text. */
+  accent: string;
+  /** Soft accent for borders / 18% opacity boxes. */
+  accentSoft: string;
+  /** Page link printed bottom-right of page 2. */
+  url: string;
+  meetingDay: string;
+  meetingTime: string;
+  venue: { name: string; address: string; note: string };
+  chair: string;
+  viceChair: string;
+  teamAdmin: string;
+  about: { lead: string; pills: Array<{ title: string; body: string }> };
+  roster: RosterMember[];
+  /** Snapshot stats — chair edits per-week if they want, defaults shown otherwise. */
+  stats: { members: string; guests: string; bizchats: string; referrals: string; gis: string; revenue: string };
+}
+
+const SHARED_AGENDA: Pick<TeamPreset, "about"> = {
+  about: {
+    lead: "211° is hot. 212° makes steam. If you know BNI, some of the structure will feel familiar. Two Twelve pushes further with permission-based referrals, BizChats, gratitude incentives, and a 24-hour follow-up ethic.",
+    pills: [
+      { title: "Permission", body: "Specific, warm introductions" },
+      { title: "Gratitude", body: "Referral effort gets recognized" },
+      { title: "Accountability", body: "Follow up fast and bring value" },
+    ],
+  },
+};
+
+export const TEAM_PRESETS: TeamPreset[] = [
   {
     id: "elevated-referral",
+    prefix: "Elevated Referral",
+    motif: "Alliance",
     name: "Elevated Referral Alliance",
     shortName: "ERA",
-    motif: "Updraft",
-    tagline: "Rising referrals, rising businesses.",
-    accent: "#59BFEF",
+    accent: "#0EA5E9",
+    accentSoft: "rgba(14, 165, 233, 0.18)",
+    url: "twotwelvereferrals.com",
     meetingDay: "Thursday",
     meetingTime: "8:00 AM",
-    venue: "TBD",
+    venue: { name: "Venue TBD", address: "", note: "Updated each week — check with the chair." },
     chair: "",
     viceChair: "",
-    tms: "",
     teamAdmin: "",
-    areaMentor: "",
+    ...SHARED_AGENDA,
+    roster: [],
+    stats: { members: "—", guests: "—", bizchats: "—", referrals: "—", gis: "—", revenue: "—" },
   },
   {
     id: "rdu-heatwave",
-    name: "RDU HeatWave",
-    shortName: "RDU",
+    prefix: "RDU",
     motif: "Heatwave",
-    tagline: "The Raleigh-Durham team boiling at 212°.",
-    accent: "#F0A653",
+    name: "RDU Heatwave",
+    shortName: "RDU",
+    accent: "#E8580C",
+    accentSoft: "rgba(232, 88, 12, 0.18)",
+    url: "rduheatwave.team",
     meetingDay: "Thursday",
     meetingTime: "8:00 AM",
-    venue: "TBD",
-    chair: "",
-    viceChair: "",
-    tms: "",
-    teamAdmin: "",
-    areaMentor: "",
+    venue: {
+      name: "Clouds Brewing",
+      address: "1233 Front St, Raleigh NC",
+      note: "Please stay for a drink after the meeting to support the brewery — they provide our space at no cost.",
+    },
+    chair: "Carter Helms",
+    viceChair: "Craig Morrill",
+    teamAdmin: "Will Sigmon",
+    ...SHARED_AGENDA,
+    roster: [
+      { name: "Carter Helms",    profession: "Personal Insurance",     company: "Highstreet Ins & Financial Svcs" },
+      { name: "Craig Morrill",   profession: "Financial Advisor",      company: "Summit Global Investments" },
+      { name: "Dana Walsh",      profession: "Magazine Publisher",     company: "Stroll Magazine" },
+      { name: "David Mercado",   profession: "HOA Management",         company: "William Douglas Management" },
+      { name: "Nathan Senn",     profession: "Property Restoration",   company: "Franco Restorations" },
+      { name: "Robert Courts",   profession: "Mortgage Lending",       company: "Advantage Lending" },
+      { name: "Roni Payne",      profession: "Accounting / Tax",       company: "R. Payne Financial & Tax Solutions" },
+      { name: "Rusty Sutton",    profession: "Digital Marketing",      company: "MonkeyFans Creative" },
+      { name: "Shannida Ramsey", profession: "Property Management",    company: "Ram-Z Services LLC" },
+      { name: "Sue Kerata",      profession: "Residential Real Estate", company: "Century 21 Triangle Group" },
+      { name: "Will Sigmon",     profession: "Software Engineer",      company: "Will Sigmon Media Co." },
+    ],
+    stats: { members: "11", guests: "113", bizchats: "207", referrals: "49", gis: "158", revenue: "$115,331" },
   },
   {
     id: "common-ground",
+    prefix: "Common Ground",
+    motif: "Connectors",
     name: "Common Ground Connectors",
     shortName: "CGC",
-    motif: "Wave",
-    tagline: "Where category-exclusive meets community-first.",
-    accent: "#6BBE5A",
+    accent: "#0F8C5C",
+    accentSoft: "rgba(15, 140, 92, 0.18)",
+    url: "twotwelvereferrals.com",
     meetingDay: "Thursday",
     meetingTime: "8:00 AM",
-    venue: "TBD",
+    venue: { name: "Venue TBD", address: "", note: "Updated each week — check with the chair." },
     chair: "",
     viceChair: "",
-    tms: "",
     teamAdmin: "",
-    areaMentor: "",
-  },
-  {
-    id: "blank",
-    name: "Blank chapter",
-    shortName: "",
-    motif: "",
-    tagline: "",
-    accent: "#59BFEF",
-    meetingDay: "Thursday",
-    meetingTime: "",
-    venue: "",
-    chair: "",
-    viceChair: "",
-    tms: "",
-    teamAdmin: "",
-    areaMentor: "",
+    ...SHARED_AGENDA,
+    roster: [],
+    stats: { members: "—", guests: "—", bizchats: "—", referrals: "—", gis: "—", revenue: "—" },
   },
 ];
 
@@ -181,4 +202,13 @@ export function formatMeetingDateLong(iso: string): string {
     day: "numeric",
     year: "numeric",
   });
+}
+
+export function findTeamByAlias(alias: string): TeamPreset | null {
+  const a = alias.toLowerCase();
+  for (const p of TEAM_PRESETS) {
+    if (p.id.toLowerCase() === a) return p;
+    if (p.shortName.toLowerCase() === a) return p;
+  }
+  return null;
 }
