@@ -1,7 +1,7 @@
 # TODO — Two Twelve Agendas (ttagendas.vercel.app)
 
 Live: https://ttagendas.vercel.app
-Vercel project: `wsm-group/ttagendas` (https://vercel.com/wsm-group/ttagendas)
+Vercel project: `wsmco/ttagendas` (https://vercel.com/wsmco/ttagendas)
 
 ## Where things stand (2026-04-28)
 
@@ -21,7 +21,7 @@ Vercel project: `wsm-group/ttagendas` (https://vercel.com/wsm-group/ttagendas)
 
 ```bash
 # Clone
-gh repo clone wsigmon/ttagendas         # (or whatever the remote becomes — check `git remote -v`)
+gh repo clone willsigmon/ttagendas
 cd ttagendas
 
 # Install + run
@@ -29,12 +29,12 @@ npm install
 npm run dev    # http://localhost:3001
 
 # Deploy
-VERCEL_NO_PLUGIN=1 vercel --prod --yes
+vercel --prod --yes --scope team_yQZuovfDBMWDtvg2DrAY4BSP
 ```
 
-Vercel project is already linked under `wsm-group/ttagendas` — `.vercel/` is gitignored, so on a fresh clone re-link with:
+Vercel project is linked under WSM (`wsmco/ttagendas`) — `.vercel/` is gitignored, so on a fresh clone re-link with:
 ```bash
-VERCEL_NO_PLUGIN=1 vercel link --yes --project ttagendas --scope wsm-group
+vercel link --yes --project ttagendas --scope team_yQZuovfDBMWDtvg2DrAY4BSP
 ```
 
 ## Open punch list
