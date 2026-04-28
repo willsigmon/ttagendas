@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import {
   AGENDA_GROUPS,
   DEFAULT_AGENDA,
@@ -58,8 +59,16 @@ export function AgendaPrintView({
     >
       {/* ============================================================
         PAGE 1 — Agenda + Spotlight + Leadership + Tip + About + Venue
-       ============================================================ */}
+      ============================================================ */}
       <div className="page">
+        <Image
+          className="page__watermark"
+          src="/twotwelve-logo.png"
+          alt=""
+          width={254}
+          height={95}
+          aria-hidden="true"
+        />
         <header className="hdr">
           <div className="hdr__id">
             <div className="hdr__name">
@@ -86,7 +95,7 @@ export function AgendaPrintView({
             ["Closed Revenue", stats.revenue],
           ].map(([label, value]) => (
             <div key={label} className="stat">
-              <div className="stat__v">{value}</div>
+              <div className="stat__v">{dash(value)}</div>
               <div className="stat__l">{label}</div>
             </div>
           ))}
@@ -186,8 +195,16 @@ export function AgendaPrintView({
 
       {/* ============================================================
         PAGE 2 — Worksheets + Notes + Roster
-       ============================================================ */}
+      ============================================================ */}
       <div className="page">
+        <Image
+          className="page__watermark page__watermark--small"
+          src="/twotwelve-logo.png"
+          alt=""
+          width={254}
+          height={95}
+          aria-hidden="true"
+        />
         <div className="two-col">
           <div className="col-main">
             <div className="sec sec--accent">Connections to Make This Week</div>
@@ -299,8 +316,30 @@ export function AgendaPrintView({
           display: flex;
           flex-direction: column;
           position: relative;
+          overflow: hidden;
           box-shadow: 0 2px 20px rgba(0,0,0,0.12);
           border-radius: 3px;
+        }
+        .page > :not(.page__watermark) {
+          position: relative;
+          z-index: 1;
+        }
+        .page__watermark {
+          position: absolute;
+          right: 0.32in;
+          bottom: 0.3in;
+          width: 2.35in;
+          height: auto;
+          opacity: 0.06;
+          pointer-events: none;
+          user-select: none;
+        }
+        .page__watermark--small {
+          top: 0.34in;
+          right: 0.42in;
+          bottom: auto;
+          width: 1.65in;
+          opacity: 0.045;
         }
         .page:last-child { page-break-after: avoid; margin-bottom: 0; }
 

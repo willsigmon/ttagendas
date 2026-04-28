@@ -102,15 +102,19 @@ export const TEAM_PRESETS: TeamPreset[] = [
     accent: "#0EA5E9",
     accentSoft: "rgba(14, 165, 233, 0.18)",
     url: "twotwelvereferrals.com",
-    meetingDay: "Thursday",
-    meetingTime: "8:00 AM",
-    venue: { name: "Venue TBD", address: "", note: "Updated each week — check with the chair." },
+    meetingDay: "Tuesday",
+    meetingTime: "4:00 PM",
+    venue: {
+      name: "Relevate Real Estate, Inc.",
+      address: "7501 Creedmoor Road Suite 102, Raleigh, NC",
+      note: "Weekly professional networking focused on referral relationships and business connections.",
+    },
     chair: "",
     viceChair: "",
     teamAdmin: "",
     ...SHARED_AGENDA,
     roster: [],
-    stats: { members: "—", guests: "—", bizchats: "—", referrals: "—", gis: "—", revenue: "—" },
+    stats: { members: "", guests: "", bizchats: "", referrals: "", gis: "", revenue: "" },
   },
   {
     id: "rdu-heatwave",
@@ -164,7 +168,7 @@ export const TEAM_PRESETS: TeamPreset[] = [
     teamAdmin: "",
     ...SHARED_AGENDA,
     roster: [],
-    stats: { members: "—", guests: "—", bizchats: "—", referrals: "—", gis: "—", revenue: "—" },
+    stats: { members: "", guests: "", bizchats: "", referrals: "", gis: "", revenue: "" },
   },
 ];
 
@@ -207,8 +211,13 @@ export function formatMeetingDateLong(iso: string): string {
 export function findTeamByAlias(alias: string): TeamPreset | null {
   const a = alias.toLowerCase();
   for (const p of TEAM_PRESETS) {
-    if (p.id.toLowerCase() === a) return p;
-    if (p.shortName.toLowerCase() === a) return p;
+    if (teamRouteAliases(p).includes(a)) return p;
   }
   return null;
+}
+
+export function teamRouteAliases(team: TeamPreset): string[] {
+  const aliases = new Set<string>([team.id.toLowerCase(), team.shortName.toLowerCase()]);
+  if (team.id === "elevated-referral") aliases.add("agenda");
+  return Array.from(aliases);
 }

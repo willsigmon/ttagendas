@@ -1,14 +1,9 @@
 import { notFound } from "next/navigation";
 import { AgendaApp } from "@/components/AgendaApp";
-import { TEAM_PRESETS, findTeamByAlias } from "@/lib/agenda-defaults";
+import { TEAM_PRESETS, findTeamByAlias, teamRouteAliases } from "@/lib/agenda-defaults";
 
 export function generateStaticParams() {
-  return TEAM_PRESETS.flatMap((p) => {
-    const aliases = new Set<string>();
-    aliases.add(p.id);
-    aliases.add(p.shortName.toLowerCase());
-    return Array.from(aliases).map((team) => ({ team }));
-  });
+  return TEAM_PRESETS.flatMap((p) => teamRouteAliases(p).map((team) => ({ team })));
 }
 
 export const dynamicParams = false;

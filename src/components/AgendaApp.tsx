@@ -1,10 +1,9 @@
 "use client";
 
 import { Printer, Save, Share2 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   TEAM_PRESETS,
-  findTeamByAlias,
   formatMeetingDateLong,
   nextMeetingDateET,
   type RosterMember,
@@ -17,6 +16,17 @@ import {
   type WeeklyAgendaState,
 } from "@/lib/storage";
 import { AgendaPrintView } from "./AgendaPrintView";
+
+type StatKey = keyof TeamPreset["stats"];
+
+const STAT_FIELDS: Array<{ key: StatKey; label: string; placeholder: string }> = [
+  { key: "members", label: "Members", placeholder: "e.g. 18" },
+  { key: "guests", label: "Guests", placeholder: "e.g. 6" },
+  { key: "bizchats", label: "BizChats", placeholder: "e.g. 12" },
+  { key: "referrals", label: "Referrals", placeholder: "e.g. 9" },
+  { key: "gis", label: "Total GIs", placeholder: "e.g. 34" },
+  { key: "revenue", label: "Closed Revenue", placeholder: "e.g. $4,200" },
+];
 
 function readUrlDate(): string | null {
   if (typeof window === "undefined") return null;
@@ -51,6 +61,20 @@ function rosterFromText(text: string): RosterMember[] {
     .filter((m) => m.name);
 }
 
+function emptyWeeklyWithRoster(team: TeamPreset, meetingDate: string): WeeklyAgendaState {
+  const empty = emptyWeekly(team.id, meetingDate);
+  return team.roster.length > 0 ? { ...empty, roster: [...team.roster] } : empty;
+}
+
+function weeklyForDate(team: TeamPreset, meetingDate: string): WeeklyAgendaState {
+  return loadWeekly(team.id, meetingDate) ?? emptyWeeklyWithRoster(team, meetingDate);
+}
+
+function draftRosterText(state: WeeklyAgendaState, team: TeamPreset): string {
+  const roster = state.roster.length > 0 ? state.roster : team.roster;
+  return rosterToText(roster);
+}
+
 export function AgendaApp({ initialTeamId }: { initialTeamId?: string } = {}) {
   const team: TeamPreset = useMemo(() => {
     if (initialTeamId) {
@@ -63,36 +87,22 @@ export function AgendaApp({ initialTeamId }: { initialTeamId?: string } = {}) {
 
   const [meetingDate, setMeetingDate] = useState<string>(initialDate);
   const [state, setState] = useState<WeeklyAgendaState>(() => {
-    const stored = loadWeekly(team.id, initialDate);
-    if (stored) return stored;
-    const empty = emptyWeekly(team.id, initialDate);
-    if (team.roster.length > 0) empty.roster = team.roster;
-    return empty;
+    return weeklyForDate(team, initialDate);
   });
   const [savedAt, setSavedAt] = useState<string | null>(null);
 
   // Roster shown in textarea: prefer per-week override, else preset
-  const rosterText = useMemo(() => {
-    const r = state.roster.length > 0 ? state.roster : team.roster;
-    return rosterToText(r);
-  }, [state.roster, team.roster]);
+  const rosterText = useMemo(() => draftRosterText(state, team), [state, team]);
   const [rosterDraft, setRosterDraft] = useState<string>(rosterText);
 
-  // When user changes the date, load any prior saved state for that date
-  useEffect(() => {
-    syncDateInUrl(meetingDate);
-    const stored = loadWeekly(team.id, meetingDate);
-    if (stored) {
-      setState(stored);
-      setRosterDraft(rosterToText(stored.roster.length > 0 ? stored.roster : team.roster));
-    } else {
-      const empty = emptyWeekly(team.id, meetingDate);
-      if (team.roster.length > 0) empty.roster = team.roster;
-      setState(empty);
-      setRosterDraft(rosterToText(team.roster));
-    }
+  function changeMeetingDate(value: string) {
+    const nextState = weeklyForDate(team, value);
+    setMeetingDate(value);
+    syncDateInUrl(value);
+    setState(nextState);
+    setRosterDraft(draftRosterText(nextState, team));
     setSavedAt(null);
-  }, [meetingDate, team.id, team.roster]);
+  }
 
   function patch<K extends keyof WeeklyAgendaState>(key: K, value: WeeklyAgendaState[K]) {
     setState((s) => ({ ...s, [key]: value }));
@@ -105,6 +115,17 @@ export function AgendaApp({ initialTeamId }: { initialTeamId?: string } = {}) {
       next[idx] = value;
       return { ...s, upcoming: next };
     });
+    setSavedAt(null);
+  }
+
+  function patchStat(key: StatKey, value: string) {
+    setState((s) => ({
+      ...s,
+      stats: {
+        ...(s.stats ?? team.stats),
+        [key]: value,
+      },
+    }));
     setSavedAt(null);
   }
 
@@ -135,6 +156,7 @@ export function AgendaApp({ initialTeamId }: { initialTeamId?: string } = {}) {
 
   // Preview always uses live form values, not just saved state
   const previewRoster = rosterFromText(rosterDraft);
+  const previewStats = state.stats ?? team.stats;
 
   return (
     <main className="builder">
@@ -143,7 +165,8 @@ export function AgendaApp({ initialTeamId }: { initialTeamId?: string } = {}) {
           <p className="kicker" style={{ color: team.accent }}>{team.shortName} Agenda</p>
           <h1>Build this week&apos;s agenda</h1>
           <p className="lede">
-            Fill the four boxes. Hit <strong>Print</strong> for a 2-page PDF. Your edits stay in this browser.
+            Fill the agenda details and stat boxes. Hit <strong>Print</strong> for a 2-page PDF.
+            Your edits stay in this browser.
           </p>
           <div className="team-strip">
             {TEAM_PRESETS.map((t) => (
@@ -168,10 +191,26 @@ export function AgendaApp({ initialTeamId }: { initialTeamId?: string } = {}) {
           <input
             type="date"
             value={meetingDate}
-            onChange={(e) => setMeetingDate(e.target.value)}
+            onChange={(e) => changeMeetingDate(e.target.value)}
           />
           <small>{formatMeetingDateLong(meetingDate)}</small>
         </label>
+
+        <div className="field-group">
+          <h2>Meeting Stats</h2>
+          <div className="stats-editor">
+            {STAT_FIELDS.map((field) => (
+              <label key={field.key} className="stat-field">
+                <span>{field.label}</span>
+                <input
+                  value={previewStats[field.key]}
+                  placeholder={field.placeholder}
+                  onChange={(e) => patchStat(field.key, e.target.value)}
+                />
+              </label>
+            ))}
+          </div>
+        </div>
 
         <div className="field-group">
           <h2>Member Spotlight</h2>
@@ -264,7 +303,7 @@ export function AgendaApp({ initialTeamId }: { initialTeamId?: string } = {}) {
           mentorName={state.mentorName}
           tipText={state.tipText}
           roster={previewRoster}
-          stats={state.stats ?? team.stats}
+          stats={previewStats}
           venue={state.venueOverride ?? team.venue}
         />
       </section>
@@ -378,6 +417,28 @@ export function AgendaApp({ initialTeamId }: { initialTeamId?: string } = {}) {
           gap: 4px;
         }
         .upcoming-grid input { font-size: 11px; padding: 6px 8px; }
+        .stats-editor {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 6px;
+        }
+        .stat-field {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+        }
+        .stat-field span {
+          font-family: 'Bebas Neue', sans-serif;
+          letter-spacing: 1.2pt;
+          color: #9c7748;
+          font-size: 10px;
+          font-weight: 700;
+          text-transform: uppercase;
+        }
+        .stat-field input {
+          padding: 7px 8px;
+          font-size: 12px;
+        }
 
         input, textarea {
           font-family: inherit;
